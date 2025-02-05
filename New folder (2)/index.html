@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>julianna</title>
+  <style>
+    /* Base Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html {
+      width: 100%;
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+      text-align: center;
+    }
+    /* Galaxy Background */
+    .galaxy {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+      overflow: hidden;
+      z-index: -10;
+    }
+    .star, .shooting-heart {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.8;
+    }
+    .star {
+      width: 2px;
+      height: 2px;
+      background: white;
+      animation: twinkle 3s infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    .shooting-heart {
+      width: 20px;
+      height: 20px;
+      font-size: 20px;
+      background: transparent;
+      animation: shoot 2s linear infinite;
+    }
+    @keyframes shoot {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(300px, -300px) scale(0.5); opacity: 0; }
+    }
+    /* Center Container */
+    .center-container {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 600px;
+      z-index: 10;
+    }
+    /* Passcode Container */
+    #passcodeContainer {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 1em;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    #passcodeContainer h2 {
+      margin-bottom: 1em;
+      font-size: 1.5em;
+    }
+    #passcodeDisplay {
+      font-size: 1.8em;
+      letter-spacing: 5px;
+      margin-bottom: 1em;
+      min-height: 40px;
+    }
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1em;
+    }
+    .keypad button {
+      padding: 15px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 5px;
+      background: #ff4081;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .keypad button:hover {
+      background: #e91e63;
+    }
+    #deleteBtn {
+      background: #555;
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #passcodeHint {
+      margin-top: 10px;
+      color: #ff4081;
+      font-size: 1em;
+    }
+    /* Envelope */
+    #envelope-container {
+      cursor: pointer;
+      transition: opacity 0.5s ease;
+      margin-bottom: 1em;
+    }
+    #envelope {
+      width: 300px;
+      height: 200px;
+      background: #ff4081;
+      border-radius: 5px;
+      position: relative;
+      overflow: hidden;
+      margin: 0 auto;
+      box-shadow: 0 0 15px rgba(255,64,129,0.7);
+    }
+    #flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      background: #e91e63;
+      transform-origin: top;
+      transition: transform 0.8s ease-in-out;
+    }
+    /* Letter */
+    #letter {
+      background: #fff;
+      color: #000;
+      border-radius: 10px;
+      padding: 1.5em;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      margin-top: 20px;
+      transform: translateY(50px);
+      opacity: 0;
+      transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+    }
+    #letter.open {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    #letterContent {
+      font-size: 1.2em;
+      line-height: 1.5;
+      min-height: 80px;
+    }
+    #letter button {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      background: #ff4081;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    #letter button:hover {
+      transform: scale(1.1);
+    }
+    /* Option Container for pages with multiple buttons */
+    #optionContainer {
+      position: relative;
+      margin-top: 1em;
+    }
+    /* Witty Display */
+    #wittyDisplay {
+      margin-top: 10px;
+      color: #ff4081;
+      font-size: 1em;
+    }
+    /* Final Message */
+    #finalMessage {
+      font-size: 1.5em;
+      margin-top: 1em;
+    }
+    /* Volume Control */
+    #volumeControl {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+    }
+    #volumeControl label {
+      color: #fff;
+      font-size: 0.9em;
+    }
+    #volumeSlider {
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Galaxy Background -->
+  <div class="galaxy" id="galaxy"></div>
+  <!-- (Stars and shooting hearts will be created via JS) -->
+
+  <!-- Main Container -->
+  <div class="center-container">
+    <!-- Passcode Screen -->
+    <div id="passcodeContainer">
+      <h2>Please enter the passcode</h2>
+      <div id="passcodeDisplay"></div>
+      <div class="keypad" id="keypad">
+        <!-- 9 number buttons -->
+        <button data-digit="1">1</button>
+        <button data-digit="2">2</button>
+        <button data-digit="3">3</button>
+        <button data-digit="4">4</button>
+        <button data-digit="5">5</button>
+        <button data-digit="6">6</button>
+        <button data-digit="7">7</button>
+        <button data-digit="8">8</button>
+        <button data-digit="9">9</button>
+      </div>
+      <button id="deleteBtn">Delete</button>
+      <div id="passcodeHint"></div>
+    </div>
+
+    <!-- Envelope Section (hidden until correct passcode) -->
+    <div id="envelope-container" style="display:none;">
+      <div id="envelope">
+        <div id="flap"></div>
+      </div>
+    </div>
+
+    <!-- Letter Container (stays on screen once revealed) -->
+    <div id="letter">
+      <div id="letterContent"></div>
+    </div>
+  </div>
+
+  <!-- Canvas for Fireworks -->
+  <canvas id="fireworksCanvas" style="position: fixed; top:0; left:0; pointer-events:none;"></canvas>
+
+  <!-- Audio for Music -->
+  <audio id="envelopeMusic" src="ikaa.mp3" loop preload="auto"></audio>
+
+  <!-- Volume Control -->
+  <div id="volumeControl">
+    <label for="volumeSlider">Volume:</label>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
+  </div>
+
+  <!-- Include canvas-confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    /**********************
+     * Galaxy Animation
+     **********************/
+    const galaxy = document.getElementById('galaxy');
+    function createStars(num = 150) {
+      for(let i = 0; i < num; i++){
+        const star = document.createElement('div');
+        star.classList.add('star');
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        galaxy.appendChild(star);
+      }
+    }
+    function createShootingHearts(num = 8) {
+      for(let i = 0; i < num; i++){
+        const heart = document.createElement('div');
+        heart.classList.add('shooting-heart');
+        heart.style.top = Math.random() * 100 + '%';
+        heart.style.left = Math.random() * 100 + '%';
+        heart.innerText = '❤️';
+        galaxy.appendChild(heart);
+      }
+    }
+    createStars();
+    createShootingHearts();
+
+    /**********************
+     * Passcode Logic
+     **********************/
+    const passcodeContainer = document.getElementById('passcodeContainer');
+    const passcodeDisplay = document.getElementById('passcodeDisplay');
+    const passcodeHint = document.getElementById('passcodeHint');
+    const keypad = document.getElementById('keypad');
+    const deleteBtn = document.getElementById('deleteBtn');
+    let enteredCode = "";
+    const correctCode = "2223";
+
+    keypad.addEventListener('click', (e) => {
+      if(e.target.tagName === 'BUTTON'){
+        enteredCode += e.target.getAttribute('data-digit');
+        passcodeDisplay.innerText = enteredCode;
+        if(enteredCode.length === 4){
+          if(enteredCode === correctCode){
+            // Correct: Hide passcode container and show envelope
+            passcodeContainer.style.display = "none";
+            document.getElementById('envelope-container').style.display = "block";
+          } else {
+            passcodeHint.innerText = "Hint: They are both our birthdays.";
+            setTimeout(() => {
+              enteredCode = "";
+              passcodeDisplay.innerText = "";
+              passcodeHint.innerText = "";
+            }, 1500);
+          }
+        }
+      }
+    });
+    deleteBtn.addEventListener('click', () => {
+      enteredCode = "";
+      passcodeDisplay.innerText = "";
+      passcodeHint.innerText = "";
+    });
+
+    /**********************
+     * Envelope & Letter Flow
+     **********************/
+    const envelopeContainer = document.getElementById('envelope-container');
+    const flap = document.getElementById('flap');
+    const letter = document.getElementById('letter');
+    const letterContent = document.getElementById('letterContent');
+
+    // When envelope is clicked, open the flap and reveal the letter.
+    envelopeContainer.addEventListener('click', () => {
+      flap.style.transform = 'rotateX(-180deg)';
+      setTimeout(() => {
+        envelopeContainer.style.opacity = 0;
+      }, 800);
+      setTimeout(() => {
+        envelopeContainer.style.display = 'none';
+        letter.classList.add('open');
+        updateLetterStep();
+
+        // Play the music
+        const music = document.getElementById('envelopeMusic');
+        music.play();
+      }, 1200);
+    });
+
+    /**********************
+     * Letter Multi-Step Process
+     **********************/
+    let letterStep = 0;
+    // We'll use separate counts for the evasive "ayokoo" behavior
+    let ayokooCount = 0; 
+    const wittyResponses = [
+      "Are you sure, my love?",
+      "Come on, you know you want to!",
+      "The stars are urging you to say yes!"
+    ];
+
+    // A helper to reposition a button randomly inside its container.
+    function repositionButton(btn) {
+      // We'll randomly translate it by -50 to +50 pixels in both directions.
+      const randomX = Math.floor(Math.random() * 100) - 50;
+      const randomY = Math.floor(Math.random() * 100) - 50;
+      btn.style.position = "relative";
+      btn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    }
+
+    function updateLetterStep() {
+      // Clear the letter content
+      letterContent.innerHTML = "";
+      switch(letterStep) {
+        case 0:
+          // Cheesy Punchline 1
+          letterContent.innerHTML = "<p>Our love is like the moon even when I can’t see you, I know you’re always there, lighting up my world.</p>" +
+                                      "<button id='nextBtn'>Next</button>";
+          document.getElementById('nextBtn').addEventListener('click', () => {
+            letterStep++;
+            updateLetterStep();
+          });
+          break;
+        case 1:
+          // Cheesy Punchline 2
+          letterContent.innerHTML = "<p>You’re my favorite notification in this long-distance app called life.</p>" +
+                                      "<button id='nextBtn'>Next</button>";
+          document.getElementById('nextBtn').addEventListener('click', () => {
+            letterStep++;
+            updateLetterStep();
+          });
+          break;
+        case 2:
+          // Cheesy Punchline 3
+          letterContent.innerHTML = "<p>They say love is blind, but thank goodness Wi-Fi isn’t otherwise, I’d have never found you!</p>" +
+                                      "<button id='nextBtn'>Next</button>";
+          document.getElementById('nextBtn').addEventListener('click', () => {
+            letterStep++;
+            updateLetterStep();
+          });
+          break;
+        case 3:
+          // Pre-Question Step
+          letterContent.innerHTML = "<p>Love, I have a big question for you...</p>" +
+                                      "<button id='questionBtn'>Ok, what is it?</button>";
+          document.getElementById('questionBtn').addEventListener('click', () => {
+            letterStep++;
+            updateLetterStep();
+          });
+          break;
+        case 4:
+          // "kiss munaaa" step with two options.
+          // Here the options have IDs "mwahBtn" and "ayokooBtn"
+          letterContent.innerHTML = "<p>kiss munaaa</p>" +
+                                      "<div id='optionContainer'>" +
+                                        "<button id='mwahBtn'>mwahh 😘</button> " +
+                                        "<button id='ayokooBtn'>ayokoo blehh 😝</button>" +
+                                      "</div>" +
+                                      "<div id='wittyDisplay'></div>";
+          document.getElementById('mwahBtn').addEventListener('click', () => {
+            // Proceed to final question step.
+            letterStep++;
+            ayokooCount = 0; // reset for next stage
+            updateLetterStep();
+          });
+          document.getElementById('ayokooBtn').addEventListener('click', () => {
+            ayokooCount++;
+            const ayokooBtn = document.getElementById('ayokooBtn');
+            repositionButton(ayokooBtn);
+            const wittyDisplay = document.getElementById('wittyDisplay');
+            wittyDisplay.innerText = wittyResponses[(ayokooCount - 1) % wittyResponses.length];
+            if(ayokooCount >= 3){
+              ayokooBtn.style.display = 'none';
+            }
+          });
+          break;
+        case 5:
+          // Final Question: "Can you be my valentine?" with two options.
+          letterContent.innerHTML = "<p>Can you be my valentine?</p>" +
+                                      "<div id='optionContainer'>" +
+                                        "<button id='finalMwah'>yes, my love! 😘</button> " +
+                                        "<button id='finalAyokoo'>ayokoo blehh 😝</button>" +
+                                      "</div>" +
+                                      "<div id='wittyDisplay'></div>";
+          document.getElementById('finalMwah').addEventListener('click', () => {
+            letterStep++;
+            updateLetterStep();
+          });
+          document.getElementById('finalAyokoo').addEventListener('click', () => {
+            ayokooCount++;
+            const finalAyokooBtn = document.getElementById('finalAyokoo');
+            repositionButton(finalAyokooBtn);
+            const wittyDisplay = document.getElementById('wittyDisplay');
+            wittyDisplay.innerText = wittyResponses[(ayokooCount - 1) % wittyResponses.length];
+            if(ayokooCount >= 3){
+              finalAyokooBtn.style.display = 'none';
+            }
+          });
+          break;
+        case 6:
+          // Final Message with celebrations.
+          letterContent.innerHTML = "<p id='finalMessage'>YAYYYYYY!!! I LOVE YOUUU, MAHAL KO❤️</p>";
+          launchFireworks();
+          setInterval(createFloatingHeart, 500);
+          break;
+        default:
+          break;
+      }
+    }
+
+    /**********************
+     * Floating Hearts Animation
+     **********************/
+    function createFloatingHeart() {
+      const heart = document.createElement('div');
+      heart.style.position = 'absolute';
+      heart.style.fontSize = '2em';
+      heart.style.color = '#ff4081';
+      heart.innerText = '❤️';
+      heart.style.left = Math.random() * window.innerWidth + 'px';
+      heart.style.top = Math.random() * window.innerHeight + 'px';
+      heart.style.opacity = 1;
+      heart.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
+      document.body.appendChild(heart);
+      setTimeout(() => {
+        heart.style.transform = 'scale(1.5) translateY(-100px)';
+        heart.style.opacity = 0;
+      }, 10);
+      setTimeout(() => {
+        heart.remove();
+      }, 1010);
+    }
+
+    /**********************
+     * Fireworks Animation using canvas-confetti
+     **********************/
+    const canvas = document.getElementById('fireworksCanvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    function launchFireworks() {
+      const duration = 5000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000, particleCount: 50 };
+
+      function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0, 1), y: Math.random() - 0.2 } }));
+      }, 250);
+    }
+
+    /**********************
+     * Adjust Canvas on Resize
+     **********************/
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    /**********************
+     * Volume Control
+     **********************/
+    const volumeSlider = document.getElementById('volumeSlider');
+    const music = document.getElementById('envelopeMusic');
+    volumeSlider.addEventListener('input', () => {
+      music.volume = volumeSlider.value;
+    });
+  </script>
+</body>
+</html>
